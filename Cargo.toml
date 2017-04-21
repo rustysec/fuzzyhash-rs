@@ -1,0 +1,11 @@
+[package]
+name = "fuzzyhash"
+version = "0.1.0"
+authors = ["Russ Morris <rmorris@infocyte.com>"]
+license = "MIT"
+description = "Pure Rust fuzzy hash implementation"
+homepage = "https://github.com/rustysec/fuzzy-rs"
+repository = "https://github.com/rustysec/fuzzy-rs"
+keywords = ["ssdeep", "fuzzy", "hash", "fuzzyhash"]
+
+[dependencies]
