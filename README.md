@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/rustysec/fuzzy-rs.svg?branch=master)](https://travis-ci.org/rustysec/fuzzyhash-rs)
+[![Build Status](https://travis-ci.org/rustysec/fuzzyhash-rs.svg?branch=master)](https://travis-ci.org/rustysec/fuzzyhash-rs)
 
 # fuzzyhash-rs
 This is a pure Rust fuzzy hash implementation!
