@@ -16,7 +16,7 @@ Also, comparing hashes is a work in progress.
 * ~Wire up CI~
 * EliminateSequences Mode
 * DoNotTruncate Mode
-* Hash Comparisons
+* ~Hash Comparisons~
 * Implement tests
 
 ### Run the example
