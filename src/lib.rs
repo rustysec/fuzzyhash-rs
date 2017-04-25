@@ -3,6 +3,9 @@ mod roll;
 mod blockhash;
 pub mod compare;
 
+use std::str;
+use std::ffi::{CStr,CString};
+
 pub struct Hasher {
     bh_start: u32,
     bh_end: u32,
@@ -260,7 +263,7 @@ pub fn hash_buffer(buf: Vec<u8>) -> String {
     hash_array(&buf, buf.len())
 }
 
-/// Returns the fuzzy hash of arbitrary data. This method proves better FFI compatibility.
+/// Returns the fuzzy hash of arbitrary data.
 ///
 /// # Arguments
 /// * `buf` - a &[u8] containing the data to hash
@@ -275,4 +278,56 @@ pub fn hash_array(buf: &[u8], length: usize) -> String {
     let mut hasher = Hasher::new();
     hasher.update(buf, length);
     hasher.digest(constants::Modes::None)
+}
+
+/// Returns the fuzzy hash of arbitrary data. This method provides better FFI compatibility.
+///
+/// # Arguments
+/// * `buf` - a pointer to the array containing the data to hash
+/// * `length` - length of buf
+/// # Example
+/// ```
+/// use fuzzyhash::{hash_buffer_raw};
+/// use std::ffi::CString;
+///
+/// let data = "this is our test data!".to_string();
+/// let hash = unsafe { CString::from_raw(hash_buffer_raw(data.as_bytes().as_ptr(), data.len())) };
+/// println!("Fuzzy Hash: {}", hash.into_string().unwrap()); 
+/// ```
+#[no_mangle]
+pub extern fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
+    let data = unsafe { std::slice::from_raw_parts(buf, length) };
+    let s = CString::new(hash_array(data, length)).unwrap();
+    s.into_raw()
+}
+
+/// FFI Compatible fuzzy hash comparisons.
+///
+/// # Arguments
+/// * `first` - a C style fuzzy hash string
+/// * `second` - a C style fuzzy hash string
+///
+/// # Example
+/// ```
+/// use fuzzyhash::{compare_strings_raw};
+/// use std::ffi::CString;
+///
+/// let first = CString::new("this is our test data!").unwrap();
+/// let second = CString::new("this is my test data!").unwrap();
+/// println!("Fuzzy Hash: {}", compare_strings_raw(first.into_raw(), second.into_raw()));
+/// ```
+#[no_mangle]
+pub extern fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
+    let f = unsafe { CStr::from_ptr(first) };
+    let s = unsafe { CStr::from_ptr(second) };
+
+    let mut buf = f.to_bytes();
+    let mut slice = str::from_utf8(buf).unwrap();
+    let f_s = slice.to_owned();
+    
+    buf = s.to_bytes();
+    slice = str::from_utf8(buf).unwrap();
+    let s_s = slice.to_owned();
+
+    compare::strings(f_s, s_s)
 }
