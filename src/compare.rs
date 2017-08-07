@@ -1,6 +1,6 @@
-use std::cmp::{min,max};
+use std::cmp::{min, max};
 use constants;
-use roll::{Roll};
+use roll::Roll;
 
 const MAX_LENGTH: usize = 64;
 const INSERT_COST: u32 = 1;
@@ -10,21 +10,17 @@ const REPLACE_COST: u32 = 2;
 fn compute_distance(s1: Vec<u8>, s2: Vec<u8>) -> u32 {
     let mut t1: Vec<u32> = vec![0; MAX_LENGTH + 1];
     let mut t2: Vec<u32> = vec![0; MAX_LENGTH + 1];
-    
-    for i2 in 0..s2.len()+1 {
+
+    for i2 in 0..s2.len() + 1 {
         t1[i2] = i2 as u32 * REMOVE_COST;
     }
     for i1 in 0..s1.len() {
         t2[0] = (i1 as u32 + 1) * INSERT_COST;
         for i2 in 0..s2.len() {
-            let cost_a = t1[i2+1] + INSERT_COST;
+            let cost_a = t1[i2 + 1] + INSERT_COST;
             let cost_d = t2[i2] + REMOVE_COST;
-            let cost_r = t1[i2] + if s1[i1] == s2[i2] {
-                0
-            } else {
-                REPLACE_COST
-            };
-            t2[i2+1] = min(min(cost_a, cost_d), cost_r);
+            let cost_r = t1[i2] + if s1[i1] == s2[i2] { 0 } else { REPLACE_COST };
+            t2[i2 + 1] = min(min(cost_a, cost_d), cost_r);
         }
         let t3 = t1.clone();
         t1 = t2.clone();
@@ -64,10 +60,11 @@ fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
                 let second_start_pos = i.wrapping_sub(constants::ROLLING_WINDOW).wrapping_add(1);
                 let mut len = 0;
                 while len + second_start_pos < second_length &&
-                    second[len + second_start_pos] != 0 {
-                        len += 1;
-                    }
-                
+                    second[len + second_start_pos] != 0
+                {
+                    len += 1;
+                }
+
                 if len < constants::ROLLING_WINDOW {
                     continue;
                 }
@@ -94,7 +91,7 @@ fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
         }
         i += 1;
     }
-    false 
+    false
 }
 
 fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
@@ -107,7 +104,7 @@ fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
     }
 
     if input.len() < 3 {
-        return result
+        return result;
     }
 
     i = 3;
@@ -130,8 +127,9 @@ fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
 
 pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
 
-    if first.len() > constants::SPAM_SUM_LENGTH as usize || 
-        second.len() > constants::SPAM_SUM_LENGTH as usize {
+    if first.len() > constants::SPAM_SUM_LENGTH as usize ||
+        second.len() > constants::SPAM_SUM_LENGTH as usize
+    {
         return 0;
     }
 
@@ -141,19 +139,20 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
     }
 
     let mut score = compute_distance(first.clone(), second.clone());
-    score = (score * constants::SPAM_SUM_LENGTH) / (( first.len() + second.len() ) as u32);
+    score = (score * constants::SPAM_SUM_LENGTH) / ((first.len() + second.len()) as u32);
     score = (100 * score) / 64;
     if score >= 100 {
         return 0;
     }
 
     score = 100 - score;
-    
-    let match_size = block_size / constants::MIN_BLOCK_SIZE * (min(first.len(), second.len()) as u32);
+
+    let match_size = block_size / constants::MIN_BLOCK_SIZE *
+        (min(first.len(), second.len()) as u32);
     if score > match_size {
         match_size
     } else {
-         score
+        score
     }
 }
 
@@ -181,16 +180,16 @@ pub fn strings(first: String, second: String) -> u32 {
         }
     };
 
-    if first_block_size != second_block_size &&
-        first_block_size != second_block_size * 2 &&
-            second_block_size != first_block_size * 2 {
-                println!("Incompatible block sizes!");
-                return 0
-            }
+    if first_block_size != second_block_size && first_block_size != second_block_size * 2 &&
+        second_block_size != first_block_size * 2
+    {
+        println!("Incompatible block sizes!");
+        return 0;
+    }
 
     let first_block1 = eliminate_sequences(first_parts[1].as_bytes().to_vec());
     let first_block2 = eliminate_sequences(first_parts[2].as_bytes().to_vec());
-    
+
     let second_block1 = eliminate_sequences(second_parts[1].as_bytes().to_vec());
     let second_block2 = eliminate_sequences(second_parts[2].as_bytes().to_vec());
 
@@ -211,11 +210,9 @@ pub fn strings(first: String, second: String) -> u32 {
         let score1 = score_strings(first_block1, second_block1, first_block_size);
         let score2 = score_strings(first_block2, second_block2, first_block_size * 2);
         return max(score1, score2);
-    }
-    else if first_block_size == second_block_size * 2 {
+    } else if first_block_size == second_block_size * 2 {
         return score_strings(first_block1, second_block2, first_block_size);
-    }
-    else {
+    } else {
         return score_strings(first_block2, second_block1, second_block_size);
     }
 }

@@ -4,14 +4,14 @@ mod blockhash;
 pub mod compare;
 
 use std::str;
-use std::ffi::{CStr,CString};
+use std::ffi::{CStr, CString};
 
 pub struct Hasher {
     bh_start: u32,
     bh_end: u32,
     bh: Vec<blockhash::Context>,
     total_size: u32,
-    roll: roll::Roll
+    roll: roll::Roll,
 }
 
 impl Hasher {
@@ -21,7 +21,7 @@ impl Hasher {
             bh_end: 1,
             bh: vec![blockhash::Context::new(); constants::NUM_BLOCKHASHES as usize],
             total_size: 0,
-            roll: roll::Roll::new()
+            roll: roll::Roll::new(),
         };
         h.bh[0].reset(true);
         h
@@ -41,8 +41,8 @@ impl Hasher {
             self.bh[self.bh_end as usize].half_digest = 0;
             self.bh[self.bh_end as usize].d_len = 0;
             self.bh_end += 1;
-        } else if self.bh_end == constants::NUM_BLOCKHASHES {
-            self.bh[self.bh_end as usize].h = self.bh[(self.bh_end -1) as usize].h;
+        } else if self.bh_end == constants::NUM_BLOCKHASHES - 1 {
+            self.bh[self.bh_end as usize].h = self.bh[(self.bh_end - 1) as usize].h;
         }
     }
 
@@ -51,12 +51,14 @@ impl Hasher {
             return;
         }
 
-        if (constants::MIN_BLOCK_SIZE << self.bh_start) * constants::SPAM_SUM_LENGTH >= self.total_size {
+        if (constants::MIN_BLOCK_SIZE << self.bh_start) * constants::SPAM_SUM_LENGTH >=
+            self.total_size
+        {
             return;
         }
 
         if self.bh[(self.bh_start + 1) as usize].d_len < constants::SPAM_SUM_LENGTH / 2 {
-            return
+            return;
         }
 
         self.bh_start += 1;
@@ -79,8 +81,10 @@ impl Hasher {
                 self.try_fork_blockhash();
             }
             let pos = self.bh[j as usize].d_len as usize;
-            self.bh[j as usize].digest[pos] = constants::get_base64_char((self.bh[j as usize].h % 64) as usize);
-            self.bh[j as usize].half_digest = constants::get_base64_char((self.bh[j as usize].half_h % 64) as usize);
+            self.bh[j as usize].digest[pos] =
+                constants::get_base64_char((self.bh[j as usize].h % 64) as usize);
+            self.bh[j as usize].half_digest =
+                constants::get_base64_char((self.bh[j as usize].half_h % 64) as usize);
 
             if self.bh[j as usize].d_len < constants::SPAM_SUM_LENGTH - 1 {
                 self.bh[j as usize].reset(false);
@@ -118,7 +122,7 @@ impl Hasher {
         while bi > self.bh_start && self.bh[bi as usize].d_len < constants::SPAM_SUM_LENGTH / 2 {
             bi -= 1;
         }
-        
+
         let actual_blocksize = constants::MIN_BLOCK_SIZE << bi;
         let blocksize_string = actual_blocksize.to_string();
         let blocksize_chars = blocksize_string.clone().into_bytes();
@@ -129,47 +133,42 @@ impl Hasher {
         }
         result[i] = ':' as u8;
         i += 1;
-        
+
         pos += i;
         i = self.bh[bi as usize].d_len as usize;
 
         match flags {
             constants::Modes::EliminateSequences => {
                 i = Hasher::memcpy_eliminate_sequences();
-            },
+            }
             _ => {
                 for k in 0..i {
                     result[pos + k] = self.bh[bi as usize].digest[k];
                 }
             }
         }
-        
+
         pos += i;
         if h != 0 {
             let base64val = constants::get_base64_char((self.bh[bi as usize].h % 64) as usize);
             result[pos] = base64val;
             if match flags {
                 constants::Modes::EliminateSequences => false,
-                _ => true 
-            } 
-            || i < 3
-            || base64val != result[pos - 1]
-            || base64val != result[pos - 2]
-            || base64val != result[pos - 3] {
+                _ => true, 
+            } || i < 3 || base64val != result[pos - 1] ||
+                base64val != result[pos - 2] || base64val != result[pos - 3]
+            {
                 pos += 1;
             }
-        }
-        else if self.bh[bi as usize].digest[i as usize] != 0 {
+        } else if self.bh[bi as usize].digest[i as usize] != 0 {
             let base64val = self.bh[bi as usize].digest[i as usize];
             result[pos as usize] = base64val;
             if match flags {
                 constants::Modes::EliminateSequences => false,
-                _ => true
-            } 
-            || i < 3
-            || base64val != result[pos - 1]
-            || base64val != result[pos - 2]
-            || base64val != result[pos - 3] {
+                _ => true,
+            } || i < 3 || base64val != result[pos - 1] ||
+                base64val != result[pos - 2] || base64val != result[pos - 3]
+            {
                 pos += 1;
             }
         }
@@ -182,15 +181,16 @@ impl Hasher {
 
             if match flags {
                 constants::Modes::DoNotTruncate => false,
-                _ => true
-            } && i > ((constants::SPAM_SUM_LENGTH / 2) - 1) as usize {
+                _ => true,
+            } && i > ((constants::SPAM_SUM_LENGTH / 2) - 1) as usize
+            {
                 i = ((constants::SPAM_SUM_LENGTH / 2) - 1) as usize;
             }
-            
+
             match flags {
                 constants::Modes::EliminateSequences => {
                     i = Hasher::memcpy_eliminate_sequences();
-                },
+                }
                 _ => {
                     for k in 0..i {
                         result[pos + k] = self.bh[bi as usize].digest[k];
@@ -202,43 +202,41 @@ impl Hasher {
             if h != 0 {
                 h = match flags {
                     constants::Modes::DoNotTruncate => self.bh[bi as usize].h,
-                    _ => self.bh[bi as usize].half_h
+                    _ => self.bh[bi as usize].half_h,
                 };
                 let base64val = constants::get_base64_char((h % 64) as usize);
                 result[pos] = base64val;
                 if match flags {
                     constants::Modes::EliminateSequences => false,
-                    _ => true
-                } 
-                || i < 3
-                || base64val != result[pos - 1]
-                || base64val != result[pos - 2]
-                || base64val != result[pos - 3] {
+                    _ => true,
+                } || i < 3 || base64val != result[pos - 1] ||
+                    base64val != result[pos - 2] ||
+                    base64val != result[pos - 3]
+                {
                     pos += 1;
                 }
-            }
-            else {
+            } else {
                 i = match flags {
-                    constants::Modes::DoNotTruncate => self.bh[bi as usize].digest[self.bh[bi as usize].d_len as usize],
-                    _ => self.bh[bi as usize].half_digest
+                    constants::Modes::DoNotTruncate => {
+                        self.bh[bi as usize].digest[self.bh[bi as usize].d_len as usize]
+                    }
+                    _ => self.bh[bi as usize].half_digest,
                 } as usize;
 
                 if i != 0 {
                     result[pos] = i as u8;
                     if match flags {
                         constants::Modes::EliminateSequences => false,
-                        _ => true
-                    } 
-                    || i < 3
-                    || i != result[pos - 1] as usize
-                    || i != result[pos - 2] as usize
-                    || i != result[pos - 3] as usize {
+                        _ => true,
+                    } || i < 3 || i != result[pos - 1] as usize ||
+                        i != result[pos - 2] as usize ||
+                        i != result[pos - 3] as usize
+                    {
                         pos += 1;
                     }
                 }
             }
-        }
-        else if h != 0 {
+        } else if h != 0 {
             result[pos] = constants::get_base64_char((self.bh[bi as usize].h % 64) as usize);
         }
         unsafe {
@@ -292,10 +290,10 @@ pub fn hash_array(buf: &[u8], length: usize) -> String {
 ///
 /// let data = "this is our test data!".to_string();
 /// let hash = unsafe { CString::from_raw(hash_buffer_raw(data.as_bytes().as_ptr(), data.len())) };
-/// println!("Fuzzy Hash: {}", hash.into_string().unwrap()); 
+/// println!("Fuzzy Hash: {}", hash.into_string().unwrap());
 /// ```
 #[no_mangle]
-pub extern fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
+pub extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
     let data = unsafe { std::slice::from_raw_parts(buf, length) };
     let s = CString::new(hash_array(data, length)).unwrap();
     s.into_raw()
@@ -317,14 +315,14 @@ pub extern fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
 /// println!("Fuzzy Hash: {}", compare_strings_raw(first.into_raw(), second.into_raw()));
 /// ```
 #[no_mangle]
-pub extern fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
+pub extern "C" fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
     let f = unsafe { CStr::from_ptr(first) };
     let s = unsafe { CStr::from_ptr(second) };
 
     let mut buf = f.to_bytes();
     let mut slice = str::from_utf8(buf).unwrap();
     let f_s = slice.to_owned();
-    
+
     buf = s.to_bytes();
     slice = str::from_utf8(buf).unwrap();
     let s_s = slice.to_owned();
