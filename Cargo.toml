@@ -9,6 +9,5 @@ repository = "https://github.com/rustysec/fuzzyhash-rs"
 keywords = ["ssdeep", "fuzzy", "hash", "fuzzyhash"]
 
 [lib]
-crate-type = ["dylib", "rlib"]
 
 [dependencies]
