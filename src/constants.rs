@@ -11,6 +11,4 @@ pub enum Modes {
     DoNotTruncate = 2
 }
 
-pub fn get_base64_char(pos: usize) -> u8 {
-    BASE64_CHARS.to_string().into_bytes()[pos]
-}
+pub fn get_base64_char(pos: usize) -> u8 { BASE64_CHARS.bytes().nth(pos).unwrap_or(0) }

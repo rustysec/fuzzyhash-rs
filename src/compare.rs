@@ -7,7 +7,7 @@ const INSERT_COST: u32 = 1;
 const REMOVE_COST: u32 = 1;
 const REPLACE_COST: u32 = 2;
 
-fn compute_distance(s1: Vec<u8>, s2: Vec<u8>) -> u32 {
+fn compute_distance(s1: &[u8], s2: &[u8]) -> u32 {
     let mut t1: Vec<u32> = vec![0; MAX_LENGTH + 1];
     let mut t2: Vec<u32> = vec![0; MAX_LENGTH + 1];
 
@@ -138,7 +138,7 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
         return 0;
     }
 
-    let mut score = compute_distance(first.clone(), second.clone());
+    let mut score = compute_distance(&first, &second);
     score = (score * constants::SPAM_SUM_LENGTH) / ((first.len() + second.len()) as u32);
     score = (100 * score) / 64;
     if score >= 100 {
