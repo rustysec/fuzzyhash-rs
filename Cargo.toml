@@ -1,6 +1,6 @@
 [package]
 name = "fuzzyhash"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Russ Morris <rmorris@infocyte.com>"]
 license = "MIT"
 description = "Pure Rust fuzzy hash implementation"
