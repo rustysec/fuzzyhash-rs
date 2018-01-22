@@ -10,6 +10,7 @@ const REPLACE_COST: u32 = 2;
 fn compute_distance(s1: &[u8], s2: &[u8]) -> u32 {
     let mut t1: Vec<u32> = vec![0; MAX_LENGTH + 1];
     let mut t2: Vec<u32> = vec![0; MAX_LENGTH + 1];
+    let mut t3;
 
     for i2 in 0..s2.len() + 1 {
         t1[i2] = i2 as u32 * REMOVE_COST;
@@ -22,16 +23,16 @@ fn compute_distance(s1: &[u8], s2: &[u8]) -> u32 {
             let cost_r = t1[i2] + if s1[i1] == s2[i2] { 0 } else { REPLACE_COST };
             t2[i2 + 1] = min(min(cost_a, cost_d), cost_r);
         }
-        let t3 = t1.clone();
-        t1 = t2.clone();
+        t3 = t1;
+        t1 = t2;
         t2 = t3;
     }
     t1[s2.len()]
 }
 
 fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
-    let first_length = first.to_vec().len();
-    let second_length = second.to_vec().len();
+    let first_length = first.len();
+    let second_length = second.len();
     let mut i: usize = 0;
     let mut hashes: Vec<u32> = vec![0; constants::SPAM_SUM_LENGTH as usize];
     let mut state = Roll::new();
@@ -156,7 +157,40 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
     }
 }
 
+
+/// Compare two fuzzy hashes represented as String's
+///
+/// # Arguments
+/// * `first` - first fuzzy hash to compare
+/// * `second` - second fuzzy hash to compare
+/// 
+/// # Example
+/// ```
+/// use fuzzyhash::compare::strings;
+/// assert_eq!(strings(
+///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg".to_string(),
+///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R".to_string()),
+///     63);
+/// ```
 pub fn strings(first: String, second: String) -> u32 {
+    strs(&first, &second)
+}
+
+/// Compare two fuzzy hashes represented as &str's
+///
+/// # Arguments
+/// * `first` - first fuzzy hash to compare
+/// * `second` - second fuzzy hash to compare
+///
+/// # Example
+/// ```
+/// use fuzzyhash::compare::strs;
+/// assert_eq!(strs(
+///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg",
+///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R"),
+///     63);
+/// ```
+pub fn strs(first: &str, second: &str) -> u32 {
     let first_parts: Vec<&str> = first.split(':').collect();
     let second_parts: Vec<&str> = second.split(':').collect();
 

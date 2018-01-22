@@ -125,7 +125,7 @@ impl Hasher {
 
         let actual_blocksize = constants::MIN_BLOCK_SIZE << bi;
         let blocksize_string = actual_blocksize.to_string();
-        let blocksize_chars = blocksize_string.clone().into_bytes();
+        let blocksize_chars = blocksize_string.into_bytes();
         let mut i = blocksize_chars.len();
 
         for j in 0..i {
