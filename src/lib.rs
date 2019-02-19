@@ -1,9 +1,8 @@
-mod constants;
-mod roll;
 mod blockhash;
 pub mod compare;
+mod constants;
+mod roll;
 
-use std::str;
 use std::ffi::{CStr, CString};
 
 pub struct Hasher {
@@ -51,8 +50,8 @@ impl Hasher {
             return;
         }
 
-        if (constants::MIN_BLOCK_SIZE << self.bh_start) * constants::SPAM_SUM_LENGTH >=
-            self.total_size
+        if (constants::MIN_BLOCK_SIZE << self.bh_start) * constants::SPAM_SUM_LENGTH
+            >= self.total_size
         {
             return;
         }
@@ -154,9 +153,11 @@ impl Hasher {
             result[pos] = base64val;
             if match flags {
                 constants::Modes::EliminateSequences => false,
-                _ => true, 
-            } || i < 3 || base64val != result[pos - 1] ||
-                base64val != result[pos - 2] || base64val != result[pos - 3]
+                _ => true,
+            } || i < 3
+                || base64val != result[pos - 1]
+                || base64val != result[pos - 2]
+                || base64val != result[pos - 3]
             {
                 pos += 1;
             }
@@ -166,8 +167,10 @@ impl Hasher {
             if match flags {
                 constants::Modes::EliminateSequences => false,
                 _ => true,
-            } || i < 3 || base64val != result[pos - 1] ||
-                base64val != result[pos - 2] || base64val != result[pos - 3]
+            } || i < 3
+                || base64val != result[pos - 1]
+                || base64val != result[pos - 2]
+                || base64val != result[pos - 3]
             {
                 pos += 1;
             }
@@ -209,9 +212,10 @@ impl Hasher {
                 if match flags {
                     constants::Modes::EliminateSequences => false,
                     _ => true,
-                } || i < 3 || base64val != result[pos - 1] ||
-                    base64val != result[pos - 2] ||
-                    base64val != result[pos - 3]
+                } || i < 3
+                    || base64val != result[pos - 1]
+                    || base64val != result[pos - 2]
+                    || base64val != result[pos - 3]
                 {
                     pos += 1;
                 }
@@ -228,9 +232,10 @@ impl Hasher {
                     if match flags {
                         constants::Modes::EliminateSequences => false,
                         _ => true,
-                    } || i < 3 || i != result[pos - 1] as usize ||
-                        i != result[pos - 2] as usize ||
-                        i != result[pos - 3] as usize
+                    } || i < 3
+                        || i != result[pos - 1] as usize
+                        || i != result[pos - 2] as usize
+                        || i != result[pos - 3] as usize
                     {
                         pos += 1;
                     }
@@ -316,16 +321,13 @@ pub extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
 /// ```
 #[no_mangle]
 pub extern "C" fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
-    let f = unsafe { CStr::from_ptr(first) };
-    let s = unsafe { CStr::from_ptr(second) };
+    let f = unsafe { CStr::from_ptr(first) }
+        .to_string_lossy()
+        .into_owned();
+    let s = unsafe { CStr::from_ptr(second) }
+        .to_string_lossy()
+        .into_owned();
 
-    let mut buf = f.to_bytes();
-    let mut slice = str::from_utf8(buf).unwrap();
-    let f_s = slice.to_owned();
-
-    buf = s.to_bytes();
-    slice = str::from_utf8(buf).unwrap();
-    let s_s = slice.to_owned();
-
-    compare::strings(f_s, s_s)
+    let x = compare::strs(&f, &s);
+    x
 }
