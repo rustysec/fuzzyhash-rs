@@ -1,6 +1,5 @@
-use std::cmp::{min, max};
-use constants;
-use roll::Roll;
+use super::{constants, roll::Roll};
+use std::cmp::{max, min};
 
 const MAX_LENGTH: usize = 64;
 const INSERT_COST: u32 = 1;
@@ -60,8 +59,7 @@ fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
             if hashes[j] != 0 && hashes[j] == h {
                 let second_start_pos = i.wrapping_sub(constants::ROLLING_WINDOW).wrapping_add(1);
                 let mut len = 0;
-                while len + second_start_pos < second_length &&
-                    second[len + second_start_pos] != 0
+                while len + second_start_pos < second_length && second[len + second_start_pos] != 0
                 {
                     len += 1;
                 }
@@ -127,9 +125,8 @@ fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
 }
 
 pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
-
-    if first.len() > constants::SPAM_SUM_LENGTH as usize ||
-        second.len() > constants::SPAM_SUM_LENGTH as usize
+    if first.len() > constants::SPAM_SUM_LENGTH as usize
+        || second.len() > constants::SPAM_SUM_LENGTH as usize
     {
         return 0;
     }
@@ -148,8 +145,8 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
 
     score = 100 - score;
 
-    let match_size = block_size / constants::MIN_BLOCK_SIZE *
-        (min(first.len(), second.len()) as u32);
+    let match_size =
+        block_size / constants::MIN_BLOCK_SIZE * (min(first.len(), second.len()) as u32);
     if score > match_size {
         match_size
     } else {
@@ -157,13 +154,12 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
     }
 }
 
-
 /// Compare two fuzzy hashes represented as String's
 ///
 /// # Arguments
 /// * `first` - first fuzzy hash to compare
 /// * `second` - second fuzzy hash to compare
-/// 
+///
 /// # Example
 /// ```
 /// use fuzzyhash::compare::strings;
@@ -214,8 +210,9 @@ pub fn strs(first: &str, second: &str) -> u32 {
         }
     };
 
-    if first_block_size != second_block_size && first_block_size != second_block_size * 2 &&
-        second_block_size != first_block_size * 2
+    if first_block_size != second_block_size
+        && first_block_size != second_block_size * 2
+        && second_block_size != first_block_size * 2
     {
         println!("Incompatible block sizes!");
         return 0;

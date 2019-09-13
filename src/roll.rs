@@ -1,15 +1,14 @@
-use constants;
+use super::constants;
 
 pub struct Roll {
     pub h1: u32,
     pub h2: u32,
     pub h3: u32,
     pub n: u32,
-    pub window: Vec<u8>
+    pub window: Vec<u8>,
 }
 
 impl Roll {
-
     pub fn sum(&mut self) -> u32 {
         self.h3.wrapping_add(self.h1.wrapping_add(self.h2))
     }
@@ -34,7 +33,7 @@ impl Roll {
             h2: 0,
             h3: 0,
             n: 0,
-            window: vec![0; constants::ROLLING_WINDOW]
+            window: vec![0; constants::ROLLING_WINDOW],
         }
     }
 }

@@ -1,5 +1,5 @@
+use super::constants;
 use std::num::Wrapping;
-use constants;
 
 pub const HASH_PRIME: u32 = 0x01000193;
 pub const HASH_INIT: u32 = 0x28021967;
@@ -10,7 +10,7 @@ pub struct Context {
     pub half_h: u32,
     pub digest: Vec<u8>,
     pub half_digest: u8,
-    pub d_len: u32
+    pub d_len: u32,
 }
 
 impl Context {
@@ -20,7 +20,7 @@ impl Context {
             half_h: 0,
             digest: vec![0; constants::SPAM_SUM_LENGTH as usize],
             half_digest: 0,
-            d_len: 0
+            d_len: 0,
         }
     }
 
@@ -41,8 +41,7 @@ impl Context {
 
     pub fn reset(&mut self, init: bool) {
         match init {
-            true =>  {
-            },
+            true => {}
             false => {
                 self.d_len += 1;
             }

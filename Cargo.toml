@@ -1,12 +1,13 @@
 [package]
 name = "fuzzyhash"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Russ Morris <rmorris@infocyte.com>"]
 license = "MIT"
 description = "Pure Rust fuzzy hash implementation"
 homepage = "https://github.com/rustysec/fuzzyhash-rs"
 repository = "https://github.com/rustysec/fuzzyhash-rs"
 keywords = ["ssdeep", "fuzzy", "hash", "fuzzyhash"]
+edition = "2018"
 
 [lib]
 
