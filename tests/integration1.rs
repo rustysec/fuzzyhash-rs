@@ -1,7 +1,7 @@
 extern crate fuzzyhash;
 
-use fuzzyhash::{hash_buffer};
-use fuzzyhash::compare::{strings};
+use fuzzyhash::compare::strings;
+use fuzzyhash::hash_buffer;
 
 #[test]
 fn integration1() {

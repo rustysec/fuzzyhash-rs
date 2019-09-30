@@ -1,7 +1,7 @@
 extern crate fuzzyhash;
 
-use std::env;
 use fuzzyhash::compare::strings;
+use std::env;
 
 pub fn main() {
     if env::args().len() != 3 {
