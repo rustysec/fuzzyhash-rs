@@ -2,7 +2,7 @@
 extern crate fuzzyhash;
 extern crate test;
 
-use fuzzyhash::{hash_buffer};
+use fuzzyhash::{hash_buffer, hash_file};
 use test::Bencher;
 
 #[bench]
@@ -87,4 +87,17 @@ a5500b26b3fd3f77c433c0d85978c667898832f12709d5d79b1d90f62510e109
             i += 1;
         }
     });
+}
+
+#[bench]
+fn benchmark_hash_file(b: &mut test::Bencher) {
+    b.iter(|| hash_file("./tests/test_data.bin"))
+}
+
+#[bench]
+fn read_file_then_hash(b: &mut test::Bencher) {
+    b.iter(|| {
+        let data = std::fs::read("./tests/test_data.bin").unwrap();
+        hash_buffer(data)
+    })
 }
