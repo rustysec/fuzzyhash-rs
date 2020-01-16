@@ -1,9 +1,18 @@
+//! An implementation of fuzzyhash/ssdeep hash algorithm. The
+//! original [CTPH](https://www.sciencedirect.com/science/article/pii/S1742287606000764?via%3Dihub)
+//! paper describes how this fuzzy hash is computed.
+//!
+
+#![warn(missing_docs)]
+
 mod blockhash;
-pub mod compare;
-pub mod constants;
+mod compare;
+mod constants;
 mod hasher;
 mod roll;
 
+pub use compare::{strings, strs};
+pub use constants::Modes;
 pub use hasher::Hasher;
 use std::ffi::{CStr, CString};
 use std::io::Read;
@@ -46,6 +55,11 @@ pub fn hash_array(buf: &[u8], length: usize) -> String {
 /// # Arguments
 /// * `buf` - a pointer to the array containing the data to hash
 /// * `length` - length of buf
+///
+/// # Safety
+///
+/// This is function is `unsafe` as it is intended to read a string from FFI
+///
 /// # Example
 /// ```
 /// use fuzzyhash::{hash_buffer_raw};
@@ -56,8 +70,8 @@ pub fn hash_array(buf: &[u8], length: usize) -> String {
 /// println!("Fuzzy Hash: {}", hash.into_string().unwrap());
 /// ```
 #[no_mangle]
-pub extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
-    let data = unsafe { std::slice::from_raw_parts(buf, length) };
+pub unsafe extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
+    let data = std::slice::from_raw_parts(buf, length);
     let s = CString::new(hash_array(data, length)).unwrap();
     s.into_raw()
 }
@@ -68,6 +82,10 @@ pub extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
 /// * `first` - a C style fuzzy hash string
 /// * `second` - a C style fuzzy hash string
 ///
+/// # Safety
+///
+/// This is function is `unsafe` as it is intended to read strings from FFI
+///
 /// # Example
 /// ```
 /// use fuzzyhash::{compare_strings_raw};
@@ -75,21 +93,24 @@ pub extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
 ///
 /// let first = CString::new("this is our test data!").unwrap();
 /// let second = CString::new("this is my test data!").unwrap();
-/// println!("Fuzzy Hash: {}", compare_strings_raw(first.into_raw(), second.into_raw()));
+/// println!("Fuzzy Hash: {}", unsafe { compare_strings_raw(first.into_raw(), second.into_raw()) });
 /// ```
 #[no_mangle]
-pub extern "C" fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
-    let f = unsafe { CStr::from_ptr(first) }
-        .to_string_lossy()
-        .into_owned();
-    let s = unsafe { CStr::from_ptr(second) }
-        .to_string_lossy()
-        .into_owned();
+pub unsafe extern "C" fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
+    let f = CStr::from_ptr(first).to_string_lossy().into_owned();
+    let s = CStr::from_ptr(second).to_string_lossy().into_owned();
 
-    let x = compare::strs(&f, &s);
-    x
+    compare::strs(&f, &s)
 }
 
+/// Hash a file pointed to by `path`.
+///
+/// # Example
+/// ```no_run
+/// use fuzzyhash::{hash_file};
+/// let hash = hash_file("/home/me/a_large_file.bin").unwrap();
+/// ```
+///
 pub fn hash_file<P: AsRef<Path>>(path: P) -> Result<String, std::io::Error> {
     let mut file = std::fs::File::open(path.as_ref())?;
     let mut hasher = Hasher::new();

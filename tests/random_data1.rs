@@ -1,6 +1,6 @@
 extern crate fuzzyhash;
 
-use fuzzyhash::{constants, hash_buffer, Hasher};
+use fuzzyhash::{hash_buffer, Hasher, Modes};
 
 #[test]
 fn random_data1() {
@@ -172,7 +172,7 @@ a5500b26b3fd3f77c433c0d85978c667898832f12709d5d79b1d90f62510e109
     }
 
     assert_eq!(
-        hasher.digest(constants::Modes::None),
+        hasher.digest(Modes::None),
         "96:S+AQXqxdOnBKd+jHwAznNFzxt2HJwDX9oWZiaK0ld7vVmS85mbaN+MmFRz/jiJ:ZXqxdO8YDnN1SHJiqLaK0lbFbbaN1mFs".to_string()
     );
 }

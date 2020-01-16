@@ -1,7 +1,7 @@
 [package]
 name = "fuzzyhash"
-version = "0.1.5"
-authors = ["Russ Morris <rmorris@infocyte.com>"]
+version = "0.2.0"
+authors = ["Russ Morris <rustysec@gmail.com>"]
 license = "MIT"
 description = "Pure Rust fuzzy hash implementation"
 homepage = "https://github.com/rustysec/fuzzyhash-rs"

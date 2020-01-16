@@ -1,6 +1,6 @@
 extern crate fuzzyhash;
 
-use fuzzyhash::compare::strings;
+use fuzzyhash::strings;
 
 #[test]
 fn compare_empty() {

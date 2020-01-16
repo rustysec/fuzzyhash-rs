@@ -1,8 +1,8 @@
 use super::constants;
 use std::num::Wrapping;
 
-pub const HASH_PRIME: u32 = 0x01000193;
-pub const HASH_INIT: u32 = 0x28021967;
+pub const HASH_PRIME: u32 = 0x0100_0193;
+pub const HASH_INIT: u32 = 0x2802_1967;
 
 #[derive(Clone)]
 pub struct Context {
@@ -24,14 +24,14 @@ impl Context {
         }
     }
 
-    pub fn hash(&mut self, c: u8) {
+    pub(crate) fn hash(&mut self, c: u8) {
         let h1 = self.h;
         self.h = self.hash_full(c, h1);
         let h2 = self.half_h;
         self.half_h = self.hash_full(c, h2);
     }
 
-    pub fn hash_full(&mut self, c: u8, h: u32) -> u32 {
+    pub(crate) fn hash_full(&mut self, c: u8, h: u32) -> u32 {
         let h_wrapped = Wrapping(h);
         let hp_wrapped = Wrapping(HASH_PRIME);
         let c_wrapped = Wrapping(c as u32);
@@ -39,13 +39,11 @@ impl Context {
         ((h_wrapped * hp_wrapped) ^ (c_wrapped)).0
     }
 
-    pub fn reset(&mut self, init: bool) {
-        match init {
-            true => {}
-            false => {
-                self.d_len += 1;
-            }
+    pub(crate) fn reset(&mut self, init: bool) {
+        if !init {
+            self.d_len += 1;
         }
+
         self.digest[self.d_len as usize] = 0;
         self.h = HASH_INIT;
         if self.d_len < constants::SPAM_SUM_LENGTH / 2 {

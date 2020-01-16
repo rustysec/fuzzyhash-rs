@@ -11,10 +11,11 @@ fn compute_distance(s1: &[u8], s2: &[u8]) -> u32 {
     let mut t2: Vec<u32> = vec![0; MAX_LENGTH + 1];
     let mut t3;
 
-    for i2 in 0..s2.len() + 1 {
-        t1[i2] = i2 as u32 * REMOVE_COST;
+    for (i2, item) in t1.iter_mut().enumerate().take(s2.len() + 1) {
+        *item = i2 as u32 * REMOVE_COST;
     }
-    for i1 in 0..s1.len() {
+
+    for (i1, _item) in s1.iter().enumerate() {
         t2[0] = (i1 as u32 + 1) * INSERT_COST;
         for i2 in 0..s2.len() {
             let cost_a = t1[i2 + 1] + INSERT_COST;
@@ -55,8 +56,13 @@ fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
             continue;
         }
 
-        for j in (constants::ROLLING_WINDOW - 1)..num_hashes {
-            if hashes[j] != 0 && hashes[j] == h {
+        for (j, item) in hashes
+            .iter()
+            .enumerate()
+            .take(num_hashes)
+            .skip(constants::ROLLING_WINDOW - 1)
+        {
+            if *item != 0 && *item == h {
                 let second_start_pos = i.wrapping_sub(constants::ROLLING_WINDOW).wrapping_add(1);
                 let mut len = 0;
                 while len + second_start_pos < second_length && second[len + second_start_pos] != 0
@@ -88,6 +94,7 @@ fn has_common_substring(first: &[u8], second: &[u8]) -> bool {
                 }
             }
         }
+
         i += 1;
     }
     false
@@ -124,7 +131,7 @@ fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
     result
 }
 
-pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
+fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
     if first.len() > constants::SPAM_SUM_LENGTH as usize
         || second.len() > constants::SPAM_SUM_LENGTH as usize
     {
@@ -162,7 +169,7 @@ pub fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
 ///
 /// # Example
 /// ```
-/// use fuzzyhash::compare::strings;
+/// use fuzzyhash::strings;
 /// assert_eq!(strings(
 ///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg".to_string(),
 ///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R".to_string()),
@@ -180,7 +187,7 @@ pub fn strings(first: String, second: String) -> u32 {
 ///
 /// # Example
 /// ```
-/// use fuzzyhash::compare::strs;
+/// use fuzzyhash::strs;
 /// assert_eq!(strs(
 ///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg",
 ///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R"),
@@ -240,10 +247,10 @@ pub fn strs(first: &str, second: &str) -> u32 {
     if first_block_size == second_block_size {
         let score1 = score_strings(first_block1, second_block1, first_block_size);
         let score2 = score_strings(first_block2, second_block2, first_block_size * 2);
-        return max(score1, score2);
+        max(score1, score2)
     } else if first_block_size == second_block_size * 2 {
-        return score_strings(first_block1, second_block2, first_block_size);
+        score_strings(first_block1, second_block2, first_block_size)
     } else {
-        return score_strings(first_block2, second_block1, second_block_size);
+        score_strings(first_block2, second_block1, second_block_size)
     }
 }
