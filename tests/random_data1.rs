@@ -1,6 +1,4 @@
-extern crate fuzzyhash;
-
-use fuzzyhash::{hash_buffer, Hasher, Modes};
+use fuzzyhash::FuzzyHash;
 
 #[test]
 fn random_data1() {
@@ -77,8 +75,11 @@ a5500b26b3fd3f77c433c0d85978c667898832f12709d5d79b1d90f62510e109
 "#;
 
     let bytes = data.as_bytes().to_vec();
+    let mut fuzzy_hash = FuzzyHash::new(bytes);
+    fuzzy_hash.finalize();
+
     assert_eq!(
-        hash_buffer(bytes),
+        fuzzy_hash.to_string(),
         "96:S+AQXqxdOnBKd+jHwAznNFzxt2HJwDX9oWZiaK0ld7vVmS85mbaN+MmFRz/jiJ:ZXqxdO8YDnN1SHJiqLaK0lbFbbaN1mFs".to_string()
     );
 }
@@ -158,7 +159,7 @@ a5500b26b3fd3f77c433c0d85978c667898832f12709d5d79b1d90f62510e109
 "#;
 
     let bytes = data.as_bytes().to_vec();
-    let mut hasher = Hasher::new();
+    let mut hasher = FuzzyHash::default();
     let mut i = 0;
     while i < data.len() {
         let some = bytes
@@ -168,11 +169,13 @@ a5500b26b3fd3f77c433c0d85978c667898832f12709d5d79b1d90f62510e109
             .map(|u| u.to_owned())
             .collect::<Vec<u8>>();
         i += some.len();
-        hasher.update(some.as_ref(), some.len());
+        hasher.update(some);
     }
 
+    hasher.finalize();
+
     assert_eq!(
-        hasher.digest(Modes::None),
+        hasher.to_string(),
         "96:S+AQXqxdOnBKd+jHwAznNFzxt2HJwDX9oWZiaK0ld7vVmS85mbaN+MmFRz/jiJ:ZXqxdO8YDnN1SHJiqLaK0lbFbbaN1mFs".to_string()
     );
 }

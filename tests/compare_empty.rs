@@ -1,8 +1,8 @@
 extern crate fuzzyhash;
 
-use fuzzyhash::strings;
+use fuzzyhash::FuzzyHash;
 
 #[test]
 fn compare_empty() {
-    assert_eq!(strings("".to_string(), "".to_string()), 0);
+    assert_eq!(FuzzyHash::compare("", ""), 0);
 }

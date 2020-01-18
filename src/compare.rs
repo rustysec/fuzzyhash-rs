@@ -161,41 +161,9 @@ fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
     }
 }
 
-/// Compare two fuzzy hashes represented as String's
-///
-/// # Arguments
-/// * `first` - first fuzzy hash to compare
-/// * `second` - second fuzzy hash to compare
-///
-/// # Example
-/// ```
-/// use fuzzyhash::strings;
-/// assert_eq!(strings(
-///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg".to_string(),
-///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R".to_string()),
-///     63);
-/// ```
-pub fn strings(first: String, second: String) -> u32 {
-    strs(&first, &second)
-}
-
-/// Compare two fuzzy hashes represented as &str's
-///
-/// # Arguments
-/// * `first` - first fuzzy hash to compare
-/// * `second` - second fuzzy hash to compare
-///
-/// # Example
-/// ```
-/// use fuzzyhash::strs;
-/// assert_eq!(strs(
-///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg",
-///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R"),
-///     63);
-/// ```
-pub fn strs(first: &str, second: &str) -> u32 {
-    let first_parts: Vec<&str> = first.split(':').collect();
-    let second_parts: Vec<&str> = second.split(':').collect();
+pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> u32 {
+    let first_parts: Vec<&str> = first.as_ref().split(':').collect();
+    let second_parts: Vec<&str> = second.as_ref().split(':').collect();
 
     if first_parts.len() != 3 && second_parts.len() != 3 {
         println!("Badly formatted input strings!");

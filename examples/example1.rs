@@ -1,8 +1,5 @@
-extern crate fuzzyhash;
-
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
+use fuzzyhash::FuzzyHash;
+use std::{env, fs::File, io::prelude::*};
 
 fn main() {
     if env::args().len() < 2 {
@@ -17,7 +14,9 @@ fn main() {
                 let mut buffer = Vec::new();
                 match f.read_to_end(&mut buffer) {
                     Ok(_) => {
-                        println!("{}", fuzzyhash::hash_buffer(buffer));
+                        let mut fuzzy_hash = FuzzyHash::new(buffer);
+                        fuzzy_hash.finalize();
+                        println!("{}", fuzzy_hash.to_string());
                     }
                     Err(e_read) => {
                         println!("Could not read '{}': {}", path, e_read);
