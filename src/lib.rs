@@ -2,12 +2,55 @@
 //! original [CTPH](https://www.sciencedirect.com/science/article/pii/S1742287606000764?via%3Dihub)
 //! paper describes how this fuzzy hash is computed.
 //!
+//! # Examples
+//!
+//! **Build a fuzzy hash from blocks of data, like a stream**:
+//!
+//! ```no_run
+//! use fuzzyhash::FuzzyHash;
+//! use std::io::Read;
+//!
+//! let mut file = std::fs::File::open("/path/to/my/file").unwrap();
+//! let mut fuzzy_hash = FuzzyHash::default();
+//!
+//! loop {
+//!     let mut buffer = vec![0; 1024];
+//!     let count = file.read(&mut buffer).unwrap();
+//!
+//!     fuzzy_hash.update(buffer);
+//!
+//!     if count < 1024 {
+//!         break;
+//!     }
+//! }
+//!
+//! fuzzy_hash.finalize();
+//!
+//! println!("Fuzzy hash of data: {}", fuzzy_hash);
+//! ```
+//!
+//! **Hash some data**:
+//! ```no_run
+//! use fuzzyhash::FuzzyHash;
+//!
+//! let mut buffer = Vec::new();
+//!
+//! buffer.push(0xde);
+//! buffer.push(0xad);
+//! buffer.push(0xbe);
+//! buffer.push(0xef);
+//! // ...
+//!
+//! println!("Fuzzy hash of data: {}", FuzzyHash::new(buffer));
+//! ```
+//!
 
 #![warn(missing_docs)]
 
 mod blockhash;
 mod compare;
 mod constants;
+mod error;
 mod hasher;
 mod roll;
 
@@ -35,10 +78,23 @@ impl Default for FuzzyHash {
 
 impl FuzzyHash {
     /// Construct a new FuzzyHash from source data
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::fs::read;
+    /// use std::io::Read;
+    /// use fuzzyhash::FuzzyHash;
+    ///
+    /// let mut data = read("/usr/bin/bash").unwrap();
+    /// let mut fuzzy_hash = FuzzyHash::new(data);
+    /// ```
+    ///
     pub fn new<S: AsRef<[u8]>>(input: S) -> Self {
         let input = input.as_ref();
         let mut this = Self::default();
         this.hasher.update(input, input.len());
+        this.finalize();
         this
     }
 
@@ -63,7 +119,9 @@ impl FuzzyHash {
             }
         }
 
-        Ok(Self { hasher, hash: None })
+        let mut this = Self { hasher, hash: None };
+        this.finalize();
+        Ok(this)
     }
 
     /// Add chunk to the data source
@@ -106,7 +164,6 @@ impl FuzzyHash {
     /// ```
     /// use fuzzyhash::FuzzyHash;
     /// let mut fuzzy_hash = FuzzyHash::new("some data to hash for the purposes of running a test");
-    /// fuzzy_hash.finalize();
     /// assert_eq!(fuzzy_hash.compare_to(
     ///            &"3:HEREar5MFUul0U6R9F1:knl8lql1".into()),
     ///            Some(18));

@@ -2,8 +2,7 @@ use fuzzyhash::FuzzyHash;
 
 #[test]
 fn hash_test_data() {
-    let mut fuzzy_hash = FuzzyHash::file("./tests/test_data.bin").unwrap();
-    fuzzy_hash.finalize();
+    let fuzzy_hash = FuzzyHash::file("./tests/test_data.bin").unwrap();
 
     assert_eq!(
         fuzzy_hash.to_string(),
