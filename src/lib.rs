@@ -105,11 +105,11 @@ impl FuzzyHash {
     /// # Example
     /// ```
     /// use fuzzyhash::FuzzyHash;
-    /// let mut fuzzy_hash = FuzzyHash::new("some data to hash");
+    /// let mut fuzzy_hash = FuzzyHash::new("some data to hash for the purposes of running a test");
     /// fuzzy_hash.finalize();
     /// assert_eq!(fuzzy_hash.compare_to(
-    ///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg".into()),
-    ///            55);
+    ///            &"3:HEREar5MFUul0U6R9F1:knl8lql1".into()),
+    ///            Some(18));
     /// ```
     pub fn compare_to(&self, other: &FuzzyHash) -> Option<u32> {
         self.hash

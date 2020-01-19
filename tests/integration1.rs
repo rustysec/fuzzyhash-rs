@@ -212,8 +212,11 @@ a5aeec612e2ad5b05c494464c7d881d34a095042
 2263fb5c987afd04a456e78f623272615ec6a17d
 "#;
 
-    let first_hash = FuzzyHash::new(first.to_string().into_bytes().to_vec());
-    let second_hash = FuzzyHash::new(second.to_string().into_bytes().to_vec());
+    let mut first_hash = FuzzyHash::new(first.to_string().into_bytes().to_vec());
+    first_hash.finalize();
+
+    let mut second_hash = FuzzyHash::new(second.to_string().into_bytes().to_vec());
+    second_hash.finalize();
 
     assert_eq!(first_hash.compare_to(&second_hash), Some(44))
 }
