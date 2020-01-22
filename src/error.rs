@@ -18,21 +18,28 @@ pub enum Error {
 
     /// String contains too many blocks for comparison
     TooManyBlocks,
+
+    /// Unable to produce a valid hash string
+    InvalidHashString(std::string::FromUtf8Error),
 }
 
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         match self {
-            NoCommonSubstrings => "No common substrings were found between two fuzzy hashes",
-            MalformedInput => "Strings are not in proper fuzzy hash format",
-            BlockSizeParse => "Could not parse block sizes in string(s)",
-            IncompatibleBlockSizes => "Fuzzy hashes have incompatible block sizes",
-            TooManyBlocks => "Total number of blocks exceeds limit",
+            Error::NoCommonSubstrings => "No common substrings were found between two fuzzy hashes",
+            Error::MalformedInput => "Strings are not in proper fuzzy hash format",
+            Error::BlockSizeParse => "Could not parse block sizes in string(s)",
+            Error::IncompatibleBlockSizes => "Fuzzy hashes have incompatible block sizes",
+            Error::TooManyBlocks => "Total number of blocks exceeds limit",
+            Error::InvalidHashString(_) => "Unable to produce a valid hash string",
         }
     }
 
     fn cause(&self) -> Option<&dyn std::error::Error> {
-        None
+        match self {
+            Error::InvalidHashString(e) => Some(e),
+            _ => None,
+        }
     }
 }
 

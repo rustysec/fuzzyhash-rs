@@ -1,4 +1,4 @@
-use super::{constants, roll::Roll};
+use super::{constants, error::Error, roll::Roll, Result};
 use std::cmp::{max, min};
 
 const MAX_LENGTH: usize = 64;
@@ -131,57 +131,54 @@ fn eliminate_sequences(input: Vec<u8>) -> Vec<u8> {
     result
 }
 
-fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> u32 {
+fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> Result<u32> {
     if first.len() > constants::SPAM_SUM_LENGTH as usize
         || second.len() > constants::SPAM_SUM_LENGTH as usize
     {
-        return 0;
+        return Ok(0);
     }
 
     if !has_common_substring(&first, &second) {
-        println!("no common substring!");
-        return 0;
+        return Err(Error::NoCommonSubstrings);
     }
 
     let mut score = compute_distance(&first, &second);
     score = (score * constants::SPAM_SUM_LENGTH) / ((first.len() + second.len()) as u32);
     score = (100 * score) / 64;
     if score >= 100 {
-        return 0;
+        return Ok(0);
     }
 
     score = 100 - score;
 
     let match_size =
         block_size / constants::MIN_BLOCK_SIZE * (min(first.len(), second.len()) as u32);
-    if score > match_size {
+
+    Ok(if score > match_size {
         match_size
     } else {
         score
-    }
+    })
 }
 
-pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> u32 {
+pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> Result<u32> {
     let first_parts: Vec<&str> = first.as_ref().split(':').collect();
     let second_parts: Vec<&str> = second.as_ref().split(':').collect();
 
     if first_parts.len() != 3 && second_parts.len() != 3 {
-        println!("Badly formatted input strings!");
-        return 0;
+        return Err(Error::MalformedInput);
     }
 
     let first_block_size = match first_parts[0].parse::<u32>() {
         Ok(s) => s,
         Err(_) => {
-            println!("Cannot parse first string's block size!");
-            0
+            return Err(Error::BlockSizeParse);
         }
     };
     let second_block_size = match second_parts[0].parse::<u32>() {
         Ok(s) => s,
         Err(_) => {
-            println!("Cannot parse second string's block size!");
-            0
+            return Err(Error::BlockSizeParse);
         }
     };
 
@@ -189,8 +186,7 @@ pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> u32 
         && first_block_size != second_block_size * 2
         && second_block_size != first_block_size * 2
     {
-        println!("Incompatible block sizes!");
-        return 0;
+        return Err(Error::IncompatibleBlockSizes);
     }
 
     let first_block1 = eliminate_sequences(first_parts[1].as_bytes().to_vec());
@@ -208,17 +204,17 @@ pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> u32 
             }
         }
         if matched {
-            return 100;
+            return Ok(100);
         }
     }
 
-    if first_block_size == second_block_size {
-        let score1 = score_strings(first_block1, second_block1, first_block_size);
-        let score2 = score_strings(first_block2, second_block2, first_block_size * 2);
+    Ok(if first_block_size == second_block_size {
+        let score1 = score_strings(first_block1, second_block1, first_block_size)?;
+        let score2 = score_strings(first_block2, second_block2, first_block_size * 2)?;
         max(score1, score2)
     } else if first_block_size == second_block_size * 2 {
-        score_strings(first_block1, second_block2, first_block_size)
+        score_strings(first_block1, second_block2, first_block_size)?
     } else {
-        score_strings(first_block2, second_block1, second_block_size)
-    }
+        score_strings(first_block2, second_block1, second_block_size)?
+    })
 }

@@ -61,6 +61,9 @@ use std::fmt;
 use std::io::Read;
 use std::path::Path;
 
+/// Result of fuzzy hash operations
+pub type Result<T> = std::result::Result<T, error::Error>;
+
 /// Hasher for fuzzy algorithm
 pub struct FuzzyHash {
     hasher: Hasher,
@@ -106,7 +109,7 @@ impl FuzzyHash {
     /// let hash = FuzzyHash::file("/home/me/a_large_file.bin").unwrap();
     /// ```
     ///
-    pub fn file<P: AsRef<Path>>(path: P) -> Result<Self, std::io::Error> {
+    pub fn file<P: AsRef<Path>>(path: P) -> std::result::Result<Self, std::io::Error> {
         let mut file = std::fs::File::open(path.as_ref())?;
         let mut hasher = Hasher::new();
         loop {
@@ -133,7 +136,7 @@ impl FuzzyHash {
     /// Called to finalize the hashing and generate a string value
     pub fn finalize(&mut self) {
         if self.hash.is_none() {
-            self.hash = Some(self.hasher.digest(constants::Modes::None));
+            self.hash = self.hasher.digest(constants::Modes::None).ok();
         }
     }
 
@@ -151,7 +154,7 @@ impl FuzzyHash {
     ///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R"),
     ///     63);
     /// ```
-    pub fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> u32 {
+    pub fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> Result<u32> {
         compare::compare(first, second)
     }
 
@@ -171,7 +174,7 @@ impl FuzzyHash {
     pub fn compare_to(&self, other: &FuzzyHash) -> Option<u32> {
         self.hash
             .as_ref()
-            .map(|ref hash| FuzzyHash::compare(hash, &other.to_string()))
+            .and_then(|ref hash| FuzzyHash::compare(hash, &other.to_string()).ok())
     }
 }
 
@@ -253,5 +256,5 @@ pub unsafe extern "C" fn compare_strings_raw(first: *const i8, second: *const i8
     let f = CStr::from_ptr(first).to_string_lossy().into_owned();
     let s = CStr::from_ptr(second).to_string_lossy().into_owned();
 
-    FuzzyHash::compare(&f, &s)
+    FuzzyHash::compare(&f, &s).unwrap_or(0)
 }

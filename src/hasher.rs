@@ -1,4 +1,4 @@
-use super::{blockhash, constants, roll};
+use super::{blockhash, constants, error::Error, roll, Result};
 
 /// The fuzzy hasher
 pub struct Hasher {
@@ -106,7 +106,7 @@ impl Hasher {
     }
 
     /// Compute the hash of the data and return a `String` representation
-    pub fn digest(&mut self, flags: constants::Modes) -> String {
+    pub fn digest(&mut self, flags: constants::Modes) -> Result<String> {
         let mut result = vec![0; constants::MAX_RESULT_LENGTH as usize];
         let mut pos = 0;
         let mut bi = self.bh_start;
@@ -115,7 +115,7 @@ impl Hasher {
         while (constants::MIN_BLOCK_SIZE << bi) * constants::SPAM_SUM_LENGTH < self.total_size {
             bi += 1;
             if bi >= constants::NUM_BLOCKHASHES {
-                println!("Too many blocks!");
+                return Err(Error::TooManyBlocks);
             }
         }
 
@@ -246,6 +246,7 @@ impl Hasher {
         unsafe {
             result.set_len(pos);
         }
-        String::from_utf8(result).unwrap()
+
+        String::from_utf8(result).map_err(Error::InvalidHashString)
     }
 }
