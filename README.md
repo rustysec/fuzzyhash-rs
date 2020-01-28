@@ -62,6 +62,23 @@ fuzzy_hash.finalize();
 println!("Fuzzy hash of data: {}", fuzzy_hash);
 ```
 
+**FFI Compatibility**
+Two functions provide entry points for FFI usage of this library.
+
+```c
+// hashing some data
+unsigned char *data = (unsigned char*)malloc(256);
+// fill this buffer...
+int fuzzy = fuzzyhash(data, 256);
+```
+
+```c
+// compare two fuzzyhashes
+char *first = "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg";
+char *second = "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R";
+int compared = fuzzyhash_compare(first, second);
+```
+
 ### Status
 Currently this library only supports the `None` mode of the ssdeep fuzzy hashing algorithm,
 `EliminateSequences` and `DoNotTruncate` will be implemented eventually.

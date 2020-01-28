@@ -227,18 +227,18 @@ impl From<String> for FuzzyHash {
 ///
 /// # Example
 /// ```
-/// use fuzzyhash::{hash_buffer_raw};
+/// use fuzzyhash::{fuzzyhash};
 /// use std::ffi::CString;
 ///
 /// let data = "this is our test data!".to_string();
-/// let hash = unsafe { CString::from_raw(hash_buffer_raw(data.as_bytes().as_ptr(), data.len())) };
+/// let hash = unsafe { CString::from_raw(fuzzyhash(data.as_bytes().as_ptr(), data.len())) };
 /// let hash = hash.into_string().unwrap();
 /// println!("Fuzzy Hash: {}", hash);
 /// assert_eq!(hash, "3:YKKGhR0tn:YRGRmn");
 ///
 /// ```
 #[no_mangle]
-pub unsafe extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut i8 {
+pub unsafe extern "C" fn fuzzyhash(buf: *const u8, length: usize) -> *mut i8 {
     let data = std::slice::from_raw_parts(buf, length);
     let mut fuzzy_hash = FuzzyHash::new(data);
     fuzzy_hash.finalize();
@@ -260,17 +260,17 @@ pub unsafe extern "C" fn hash_buffer_raw(buf: *const u8, length: usize) -> *mut 
 ///
 /// # Example
 /// ```
-/// use fuzzyhash::{compare_strings_raw};
+/// use fuzzyhash::{fuzzyhash_compare};
 /// use std::ffi::CString;
 ///
 /// let first = CString::new("this is our test data for a fuzzy hash comparison!").unwrap();
 /// let second = CString::new("this is my test data for a fuzzy hash comparison!").unwrap();
-/// let compared = unsafe { compare_strings_raw(first.as_ptr(), second.as_ptr()) };
+/// let compared = unsafe { fuzzyhash_compare(first.as_ptr(), second.as_ptr()) };
 /// println!("Fuzzy Hash: {}", compared);
 /// assert_eq!(compared, 17);
 /// ```
 #[no_mangle]
-pub unsafe extern "C" fn compare_strings_raw(first: *const i8, second: *const i8) -> u32 {
+pub unsafe extern "C" fn fuzzyhash_compare(first: *const i8, second: *const i8) -> u32 {
     let f = FuzzyHash::new(CStr::from_ptr(first).to_string_lossy().into_owned());
     let s = FuzzyHash::new(CStr::from_ptr(second).to_string_lossy().into_owned());
 
