@@ -209,8 +209,8 @@ pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> Resu
     }
 
     Ok(if first_block_size == second_block_size {
-        let score1 = score_strings(first_block1, second_block1, first_block_size)?;
-        let score2 = score_strings(first_block2, second_block2, first_block_size * 2)?;
+        let score1 = score_strings(first_block1, second_block1, first_block_size).unwrap_or(0);
+        let score2 = score_strings(first_block2, second_block2, first_block_size * 2).unwrap_or(0);
         max(score1, score2)
     } else if first_block_size == second_block_size * 2 {
         score_strings(first_block1, second_block2, first_block_size)?

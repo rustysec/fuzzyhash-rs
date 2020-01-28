@@ -58,7 +58,6 @@ pub use constants::Modes;
 pub use hasher::Hasher;
 use std::ffi::{CStr, CString};
 use std::fmt;
-use std::io::Read;
 use std::path::Path;
 
 /// Result of fuzzy hash operations
@@ -111,10 +110,24 @@ impl FuzzyHash {
     ///
     pub fn file<P: AsRef<Path>>(path: P) -> std::result::Result<Self, std::io::Error> {
         let mut file = std::fs::File::open(path.as_ref())?;
+        FuzzyHash::read(&mut file)
+    }
+
+    /// Hash target implementing `std::io::Read`
+    ///
+    /// # Example
+    /// ```
+    /// use fuzzyhash::FuzzyHash;
+    /// use std::io::{Cursor, Read};
+    ///
+    /// let mut cursor = Cursor::new(vec![1,2,3,4,5,6,7,8,9,10]);
+    /// let fuzzy = FuzzyHash::read(&mut cursor);
+    /// ```
+    pub fn read<R: std::io::Read>(reader: &mut R) -> std::result::Result<Self, std::io::Error> {
         let mut hasher = Hasher::new();
         loop {
             let mut buffer = [0; 1024];
-            let len = file.read(&mut buffer)?;
+            let len = reader.read(&mut buffer)?;
             hasher.update(&buffer, len);
 
             if len < 1024 {
@@ -151,7 +164,7 @@ impl FuzzyHash {
     /// use fuzzyhash::FuzzyHash;
     /// assert_eq!(FuzzyHash::compare(
     ///            "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg",
-    ///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R"),
+    ///            "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R").unwrap(),
     ///     63);
     /// ```
     pub fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> Result<u32> {
@@ -168,7 +181,7 @@ impl FuzzyHash {
     /// use fuzzyhash::FuzzyHash;
     /// let mut fuzzy_hash = FuzzyHash::new("some data to hash for the purposes of running a test");
     /// assert_eq!(fuzzy_hash.compare_to(
-    ///            &"3:HEREar5MFUul0U6R9F1:knl8lql1".into()),
+    ///            &"3:HEREar5MFUul0U0KMP:knl8lkKMP".into()),
     ///            Some(18));
     /// ```
     pub fn compare_to(&self, other: &FuzzyHash) -> Option<u32> {

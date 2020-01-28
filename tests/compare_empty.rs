@@ -4,5 +4,5 @@ use fuzzyhash::FuzzyHash;
 
 #[test]
 fn compare_empty() {
-    assert_eq!(FuzzyHash::compare("", ""), 0);
+    assert!(FuzzyHash::compare("", "").is_err());
 }
