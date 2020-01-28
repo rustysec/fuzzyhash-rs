@@ -38,16 +38,33 @@ let mut cursor = Cursor::new(vec![1,2,3,4,5]);
 let fuzzy = FuzzyHash::read(&mut cursor);
 ```
 
+**Build a fuzzy hash from blocks of data manually**
+```rust
+use fuzzyhash::FuzzyHash;
+use std::io::Read;
+
+let mut file = std::fs::File::open("/path/to/my/file").unwrap();
+let mut fuzzy_hash = FuzzyHash::default();
+
+loop {
+    let mut buffer = vec![0; 1024];
+    let count = file.read(&mut buffer).unwrap();
+
+    fuzzy_hash.update(buffer);
+
+if count < 1024 {
+        break;
+    }
+}
+
+fuzzy_hash.finalize();
+
+println!("Fuzzy hash of data: {}", fuzzy_hash);
+```
+
 ### Status
 Currently this library only supports the `None` mode of the ssdeep fuzzy hashing algorithm,
 `EliminateSequences` and `DoNotTruncate` will be implemented eventually.
-
-* ~Simple hash output~
-* ~Wire up CI~
-* EliminateSequences Mode
-* DoNotTruncate Mode
-* ~Hash Comparisons~
-* ~Implement tests~
 
 ### Run the example
 ```shell
