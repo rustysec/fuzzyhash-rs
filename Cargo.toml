@@ -8,6 +8,7 @@ homepage = "https://github.com/rustysec/fuzzyhash-rs"
 repository = "https://github.com/rustysec/fuzzyhash-rs"
 keywords = ["ssdeep", "fuzzy", "hash", "fuzzyhash"]
 edition = "2018"
+readme = "README.md"
 
 [lib]
 
