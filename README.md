@@ -89,7 +89,7 @@ $ cargo run -q --example example1 /bin/bash
 24576:z0wp2rLW2W2iYQK+q/VjsFEDe866QHX4kC:rp2rLW2W2iYJ+FEg6QHX
 ```
 ### 0.2.0 API Changes
-The public API for the library has been largely re-imagined and is fully of breaking changes.
+The public API for the library has been largely re-imagined and is full of breaking changes.
 
 ### 0.1.3 Updates
 Fixed performance bottlenecks with cloning large buffers unnecessarily (~22% faster).
