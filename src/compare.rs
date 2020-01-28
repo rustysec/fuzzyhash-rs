@@ -162,6 +162,8 @@ fn score_strings(first: Vec<u8>, second: Vec<u8>, block_size: u32) -> Result<u32
 }
 
 pub(crate) fn compare<S: AsRef<str>, T: AsRef<str>>(first: S, second: T) -> Result<u32> {
+    println!("#1: {}", first.as_ref());
+    println!("#2: {}", second.as_ref());
     let first_parts: Vec<&str> = first.as_ref().split(':').collect();
     let second_parts: Vec<&str> = second.as_ref().split(':').collect();
 
