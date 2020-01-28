@@ -1,5 +1,6 @@
-use super::{blockhash, constants, roll};
+use super::{blockhash, constants, error::Error, roll, Result};
 
+/// The fuzzy hasher
 pub struct Hasher {
     bh_start: u32,
     bh_end: u32,
@@ -8,7 +9,14 @@ pub struct Hasher {
     roll: roll::Roll,
 }
 
+impl Default for Hasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Hasher {
+    /// Build a new fuzzy hasher
     pub fn new() -> Hasher {
         let mut h = Hasher {
             bh_start: 0,
@@ -21,12 +29,12 @@ impl Hasher {
         h
     }
 
-    pub fn memcpy_eliminate_sequences() -> usize {
+    fn memcpy_eliminate_sequences() -> usize {
         // TODO
         0
     }
 
-    pub fn try_fork_blockhash(&mut self) {
+    fn try_fork_blockhash(&mut self) {
         if self.bh_end < constants::NUM_BLOCKHASHES {
             self.bh[self.bh_end as usize].h = self.bh[(self.bh_end - 1) as usize].h;
             self.bh[self.bh_end as usize].half_h = self.bh[(self.bh_end - 1) as usize].half_h;
@@ -40,7 +48,7 @@ impl Hasher {
         }
     }
 
-    pub fn try_reduce_blockhash(&mut self) {
+    fn try_reduce_blockhash(&mut self) {
         if self.bh_end - self.bh_start < 2 {
             return;
         }
@@ -58,7 +66,7 @@ impl Hasher {
         self.bh_start += 1;
     }
 
-    pub fn engine_step(&mut self, c: u8) {
+    fn engine_step(&mut self, c: u8) {
         self.roll.hash(c);
         let h = self.roll.sum();
         for i in self.bh_start..self.bh_end {
@@ -89,14 +97,16 @@ impl Hasher {
         }
     }
 
+    /// Add data to the `Hasher`.
     pub fn update(&mut self, buffer: &[u8], len: usize) {
         self.total_size += len as u32;
-        for i in 0..len {
-            self.engine_step(buffer[i]);
+        for item in buffer.iter().take(len) {
+            self.engine_step(*item);
         }
     }
 
-    pub fn digest(&mut self, flags: constants::Modes) -> String {
+    /// Compute the hash of the data and return a `String` representation
+    pub fn digest(&mut self, flags: constants::Modes) -> Result<String> {
         let mut result = vec![0; constants::MAX_RESULT_LENGTH as usize];
         let mut pos = 0;
         let mut bi = self.bh_start;
@@ -105,7 +115,7 @@ impl Hasher {
         while (constants::MIN_BLOCK_SIZE << bi) * constants::SPAM_SUM_LENGTH < self.total_size {
             bi += 1;
             if bi >= constants::NUM_BLOCKHASHES {
-                println!("Too many blocks!");
+                return Err(Error::TooManyBlocks);
             }
         }
 
@@ -122,10 +132,8 @@ impl Hasher {
         let blocksize_chars = blocksize_string.into_bytes();
         let mut i = blocksize_chars.len();
 
-        for j in 0..i {
-            result[j + pos] = blocksize_chars[j];
-        }
-        result[i] = ':' as u8;
+        result[pos..(i + pos)].clone_from_slice(&blocksize_chars[..i]);
+        result[i] = b':';
         i += 1;
 
         pos += i;
@@ -136,9 +144,7 @@ impl Hasher {
                 i = Hasher::memcpy_eliminate_sequences();
             }
             _ => {
-                for k in 0..i {
-                    result[pos + k] = self.bh[bi as usize].digest[k];
-                }
+                result[pos..(i + pos)].clone_from_slice(&self.bh[bi as usize].digest[..i]);
             }
         }
 
@@ -170,7 +176,7 @@ impl Hasher {
                 pos += 1;
             }
         }
-        result[pos] = ':' as u8;
+        result[pos] = b':';
         pos += 1;
 
         if bi < self.bh_end - 1 {
@@ -190,9 +196,7 @@ impl Hasher {
                     i = Hasher::memcpy_eliminate_sequences();
                 }
                 _ => {
-                    for k in 0..i {
-                        result[pos + k] = self.bh[bi as usize].digest[k];
-                    }
+                    result[pos..(i + pos)].clone_from_slice(&self.bh[bi as usize].digest[..i]);
                 }
             }
             pos += i;
@@ -242,6 +246,7 @@ impl Hasher {
         unsafe {
             result.set_len(pos);
         }
-        String::from_utf8(result).unwrap()
+
+        String::from_utf8(result).map_err(Error::InvalidHashString)
     }
 }

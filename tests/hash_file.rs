@@ -1,10 +1,11 @@
-use fuzzyhash::hash_file;
+use fuzzyhash::FuzzyHash;
 
 #[test]
 fn hash_test_data() {
-    use std::path::PathBuf;
+    let fuzzy_hash = FuzzyHash::file("./tests/test_data.bin").unwrap();
+
     assert_eq!(
-        hash_file(PathBuf::from("./tests/test_data.bin")).unwrap(),
+        fuzzy_hash.to_string(),
         "192:tEIFoBn+SbDjIZ6MUpH6rDjHPanaVGLGOvkdGep:tEIeBrbDjRAvDVEGOMGQ".to_owned()
     );
 }

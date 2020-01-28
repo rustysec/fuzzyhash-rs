@@ -1,29 +1,95 @@
+fuzzyhash-rs
+============
 [![Build Status](https://travis-ci.org/rustysec/fuzzyhash-rs.svg?branch=master)](https://travis-ci.org/rustysec/fuzzyhash-rs)
+[![Documentation](https://docs.rs/fuzzyhash/badge.svg)](https://docs.rs/fuzzyhash)
 
-# fuzzyhash-rs
-This is a pure Rust fuzzy hash implementation!
+Pure Rust fuzzy hash implementation.
 
-### About
-I have need of fuzzy hashing in a number of applications, and on a lot of platforms. I also did not want to rely on an external C library for the functionality.
-I previously ported the [algorithm to C++](https://github.com/rustysec/fuzzypp) and couldn't find a version in Rust, so here we are!
-I definitely need to mention [kolos450's work](https://github.com/kolos450/SsdeepNET) porting the algorithm to C#, which was a great jumping off point for both of my impelementations.
+### Usage
+
+**Hash A File**
+```rust
+use fuzzyhash::FuzzyHash;
+
+let fuzzy = FuzzyHash::file("/path/to/file").unwrap();
+
+// `FuzzyHash` implements `Display` so this works:
+
+println!("fuzzy hash of file: {}", fuzzy);
+```
+
+**Hash Data**
+```rust
+use fuzzyhash::FuzzyHash;
+
+// Anything that implements `AsRef<[u8]>` can be immediately hashed
+
+let data = vec![1,2,3,4,5,6,7,8,9,10];
+
+let fuzzy = FuzzyHash::new(data);
+```
+
+**Anything that implements `std::io::Read`**
+```rust
+use fuzzyhash::FuzzyHash;
+use std::io::{Cursor, Read};
+
+let mut cursor = Cursor::new(vec![1,2,3,4,5]);
+let fuzzy = FuzzyHash::read(&mut cursor);
+```
+
+**Build a fuzzy hash from blocks of data manually**
+```rust
+use fuzzyhash::FuzzyHash;
+use std::io::Read;
+
+let mut file = std::fs::File::open("/path/to/my/file").unwrap();
+let mut fuzzy_hash = FuzzyHash::default();
+
+loop {
+    let mut buffer = vec![0; 1024];
+    let count = file.read(&mut buffer).unwrap();
+
+    fuzzy_hash.update(buffer);
+
+if count < 1024 {
+        break;
+    }
+}
+
+fuzzy_hash.finalize();
+
+println!("Fuzzy hash of data: {}", fuzzy_hash);
+```
+
+**FFI Compatibility**
+Two functions provide entry points for FFI usage of this library.
+
+```c
+// hashing some data
+unsigned char *data = (unsigned char*)malloc(256);
+// fill this buffer...
+int fuzzy = fuzzyhash(data, 256);
+```
+
+```c
+// compare two fuzzyhashes
+char *first = "96:U57GjXnLt9co6pZwvLhJluvrszNgMFwO6MFG8SvkpjTWf:Hj3BeoEcNJ0TspgIG8SvkpjTg";
+char *second = "96:U57GjXnLt9co6pZwvLhJluvrs1eRTxYARdEallia:Hj3BeoEcNJ0TsI9xYeia3R";
+int compared = fuzzyhash_compare(first, second);
+```
 
 ### Status
-Currently this library only supports the "None" mode of the ssdeep fuzzy hashing algorithm, "EliminateSequences" and "DoNotTruncate" will be implemented shortly.
-Also, comparing hashes is a work in progress.
-
-* ~Simple hash output~
-* ~Wire up CI~
-* EliminateSequences Mode
-* DoNotTruncate Mode
-* ~Hash Comparisons~
-* Implement tests
+Currently this library only supports the `None` mode of the ssdeep fuzzy hashing algorithm,
+`EliminateSequences` and `DoNotTruncate` will be implemented eventually.
 
 ### Run the example
 ```shell
 $ cargo run -q --example example1 /bin/bash
 24576:z0wp2rLW2W2iYQK+q/VjsFEDe866QHX4kC:rp2rLW2W2iYJ+FEg6QHX
 ```
+### 0.2.0 API Changes
+The public API for the library has been largely re-imagined and is fully of breaking changes.
 
 ### 0.1.3 Updates
 Fixed performance bottlenecks with cloning large buffers unnecessarily (~22% faster).
@@ -78,3 +144,8 @@ user    0m26.515s
 sys     0m0.011s
 ```
 
+### Acknowledgements
+I previously ported the [algorithm to C++](https://github.com/rustysec/fuzzypp) and couldn't find
+a version in Rust, so here we are! I definitely need to mention
+[kolos450's work](https://github.com/kolos450/SsdeepNET) porting the algorithm to C#, which was
+a great jumping off point for both of my implementations.

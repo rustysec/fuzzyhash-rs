@@ -1,6 +1,4 @@
-extern crate fuzzyhash;
-
-use fuzzyhash::compare::strings;
+use fuzzyhash::FuzzyHash;
 use std::env;
 
 pub fn main() {
@@ -11,7 +9,11 @@ pub fn main() {
     println!("first: {}", env::args().nth(1).unwrap());
     println!("second: {}", env::args().nth(2).unwrap());
 
-    let s = strings(env::args().nth(1).unwrap(), env::args().nth(2).unwrap());
+    let first = FuzzyHash::from(env::args().nth(1).unwrap());
+    let second = FuzzyHash::from(env::args().nth(2).unwrap());
 
-    println!("Strings are {}% similar!", s);
+    println!(
+        "Strings are {}% similar!",
+        first.compare_to(&second).unwrap_or(0)
+    );
 }

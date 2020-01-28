@@ -1,7 +1,6 @@
 extern crate fuzzyhash;
 
-use fuzzyhash::compare::strings;
-use fuzzyhash::hash_buffer;
+use fuzzyhash::FuzzyHash;
 
 #[test]
 fn integration1() {
@@ -213,8 +212,8 @@ a5aeec612e2ad5b05c494464c7d881d34a095042
 2263fb5c987afd04a456e78f623272615ec6a17d
 "#;
 
-    let first_hash = hash_buffer(first.to_string().into_bytes().to_vec());
-    let second_hash = hash_buffer(second.to_string().into_bytes().to_vec());
+    let first_hash = FuzzyHash::new(first.to_string().into_bytes().to_vec());
+    let second_hash = FuzzyHash::new(second.to_string().into_bytes().to_vec());
 
-    assert_eq!(strings(first_hash, second_hash), 44);
+    assert_eq!(first_hash.compare_to(&second_hash), Some(44))
 }
