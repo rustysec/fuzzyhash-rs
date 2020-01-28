@@ -55,7 +55,7 @@ mod hasher;
 mod roll;
 
 pub use constants::Modes;
-pub use hasher::Hasher;
+use hasher::Hasher;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::path::Path;
