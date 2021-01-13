@@ -59,6 +59,7 @@ use hasher::Hasher;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::path::Path;
+use std::os::raw::c_char;
 
 /// Result of fuzzy hash operations
 pub type Result<T> = std::result::Result<T, error::Error>;
@@ -238,7 +239,7 @@ impl From<String> for FuzzyHash {
 ///
 /// ```
 #[no_mangle]
-pub unsafe extern "C" fn fuzzyhash(buf: *const u8, length: usize) -> *mut i8 {
+pub unsafe extern "C" fn fuzzyhash(buf: *const u8, length: usize) -> *mut c_char {
     let data = std::slice::from_raw_parts(buf, length);
     let mut fuzzy_hash = FuzzyHash::new(data);
     fuzzy_hash.finalize();
@@ -270,7 +271,7 @@ pub unsafe extern "C" fn fuzzyhash(buf: *const u8, length: usize) -> *mut i8 {
 /// assert_eq!(compared, 17);
 /// ```
 #[no_mangle]
-pub unsafe extern "C" fn fuzzyhash_compare(first: *const i8, second: *const i8) -> u32 {
+pub unsafe extern "C" fn fuzzyhash_compare(first: *const c_char, second: *const c_char) -> u32 {
     let f = FuzzyHash::new(CStr::from_ptr(first).to_string_lossy().into_owned());
     let s = FuzzyHash::new(CStr::from_ptr(second).to_string_lossy().into_owned());
 
