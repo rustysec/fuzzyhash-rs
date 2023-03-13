@@ -50,16 +50,18 @@
 mod blockhash;
 mod compare;
 mod constants;
-mod error;
+pub mod error;
 mod hasher;
 mod roll;
 
 pub use constants::Modes;
 use hasher::Hasher;
-use std::ffi::{CStr, CString};
-use std::fmt;
-use std::path::Path;
-use std::os::raw::c_char;
+use std::{
+    ffi::{CStr, CString},
+    fmt,
+    os::raw::c_char,
+    path::Path,
+};
 
 /// Result of fuzzy hash operations
 pub type Result<T> = std::result::Result<T, error::Error>;
